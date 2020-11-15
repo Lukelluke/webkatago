@@ -1,6 +1,7 @@
 /**
  * @preserve Copyright 2019 ICHIKAWA, Yuji (New 3 Rs)
  */
+@import '~antd/dist/antd.css';
 
 body {
   margin: 0;

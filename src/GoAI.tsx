@@ -7,6 +7,9 @@ import SituationBar from "./SituationBar";
 import GoBoard from "./GoBoard";
 import GoPosition, { BLACK, xy2coord, GoMove } from "./GoPosition";
 import Gtp, { KataInfo } from "./Gtp";
+import { Row, Col, Divider,Button } from 'antd';
+import { Upload, message } from 'antd';
+import { UploadOutlined } from '@ant-design/icons';
 
 function appendScript(URL: string, onload: (() => void) | null = null) {
 	var el = document.createElement('script');
@@ -62,15 +65,7 @@ class GoAI extends React.Component<Props, State> {
             candidates: [],
             ownership: []
         }
-        document.getElementById("sgf")!.addEventListener("paste", async (e) => {
-            const sgf = (e.clipboardData || window.clipboardData).getData("text");
-            const file = "tmp.sgf";
-            FS.writeFile(file, sgf);
-            await this.gtp.command(`loadsgf ${file}`);
-            const model = GoPosition.fromSgf(sgf);
-            this.setState({ model: model });
-            this.kataAnalyze();
-        }, false);
+
         if (this.props.gtp === "katago") {
             if (typeof SharedArrayBuffer === "undefined") {
                 updateMessage("SharedArrayBuffer, which is necessary for KataGo, is not available. Trying to connect localhost websocket server...", "yellow");
@@ -98,16 +93,45 @@ class GoAI extends React.Component<Props, State> {
         }
     }
 
+
     render() {
-        const size = `${Math.min(window.innerWidth, window.innerHeight)}px`;
+        const size = `795px`;
+        const afterload=async (result:any)=>{
+            const sgf = result.target.result;
+            const file = "tmp.sgf";
+            FS.writeFile(file, sgf);
+            console.log(file)
+            await this.gtp.command(`loadsgf ${file}`);  //加载棋谱到引擎
+            const model = GoPosition.fromSgf(sgf);  //加载棋谱到页面上
+            this.setState({ model: model });
+            console.log(this.state.history)
+            this.kataAnalyze();
+
+        }
+        const uploadconfig = {
+            name: 'file',
+            beforeUpload(file:any){
+                console.log(file)
+                if (file.name.indexOf(".sgf")==-1) {
+                    message.error(`${file.name} is not a sgf file`);
+                    return false;
+                }
+                const reader=new FileReader();
+                reader.readAsText(file);
+                reader.onload=(result:any)=>{
+                    console.log(result);
+
+                    afterload(result);
+                }
+                return true;
+            },
+            showUploadList:false
+
+
+        };
         return (
-            <div>
-                <SituationBar
-                    width={size}
-                    blackPercent={this.state.percent}
-                    blackInfo={this.state.black}
-                    whiteInfo={this.state.white}
-                />
+            <Row>
+                <Col style={{paddingLeft:"100px"}}>
                 <GoBoard
                     width={size}
                     height={size}
@@ -123,22 +147,42 @@ class GoAI extends React.Component<Props, State> {
                         }
                     }}
                 />
-            </div>
+                </Col>
+
+                <Col style={{paddingLeft:"40px"}}>
+                    <Divider/>
+                    <Row>
+                        <SituationBar
+                            width={size}
+                            blackPercent={this.state.percent}
+                        />
+                    </Row>
+                    <Divider style={{marginTop:"100px"}}/>
+
+
+                    <Row>
+                        <Button type="primary" shape="round" onClick={()=>{this.undo()}}>撤销一步</Button>
+                        <a>&nbsp;&nbsp;</a>
+                        <Upload {...uploadconfig} accept=".sgf" id="uploader">
+                            <Button type="primary" shape="round" icon={<UploadOutlined />}>上传sgf棋谱</Button>
+                        </Upload>
+                        <a>&nbsp;&nbsp;</a>
+                        <Button type="primary" shape="round">下载当前棋谱</Button>
+                    </Row>
+                    <Divider/>
+                    <Row>
+                        <a>胜率变化图</a>
+                    </Row>
+                    <Divider/>
+
+                </Col>
+
+
+            </Row>
         );
     }
 
-    lzAnalyze() {
-        this.gtp.lzAnalyze(100, result => {
-            const first = result[0];
-            const blackWinrate = (this.state.model.turn === BLACK ? first.winrate : 1 - first.winrate) * 100;
-            this.setState({
-                candidates: result,
-                percent: blackWinrate,
-                black: `${blackWinrate.toFixed(1)}%`,
-                white: `${(100 - blackWinrate).toFixed(1)}%`
-            });
-        });
-    }
+
 
     kataAnalyze() {
         this.gtp.kataAnalyze(100, result => {
@@ -188,6 +232,7 @@ class GoAI extends React.Component<Props, State> {
         } catch (e) {
             console.log(e);
         }
+        console.log(this.state)
     }
 
     async undo() {

@@ -4,6 +4,8 @@
   "private": true,
   "homepage": "https://new3rs.github.io/react-lizzie",
   "dependencies": {
+    "@ant-design/icons": "^4.3.0",
+    "antd": "^4.8.2",
     "jssgf": "^0.3.8",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
