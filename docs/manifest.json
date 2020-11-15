@@ -1,6 +1,6 @@
 {
-  "short_name": "react-lizzie",
-  "name": "React Lizzie with KataGo",
+  "short_name": "WebKatago",
+  "name": "WebKatago",
   "icons": [
     {
       "src": "shoki-144x144.png",

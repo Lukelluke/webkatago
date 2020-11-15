@@ -11,6 +11,7 @@ import { Row, Col, Divider,Button } from 'antd';
 import { Upload, message } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 
+
 function appendScript(URL: string, onload: (() => void) | null = null) {
 	var el = document.createElement('script');
     el.src = URL;
@@ -43,7 +44,7 @@ interface State {
     black: string;
     white: string;
     model: GoPosition;
-    history: GoMove[];
+    history: (GoMove|undefined)[];
     candidates: KataInfo[];
     ownership: number[];
 }
@@ -100,11 +101,11 @@ class GoAI extends React.Component<Props, State> {
             const sgf = result.target.result;
             const file = "tmp.sgf";
             FS.writeFile(file, sgf);
-            console.log(file)
-            await this.gtp.command(`loadsgf ${file}`);  //加载棋谱到引擎
-            const model = GoPosition.fromSgf(sgf);  //加载棋谱到页面上
-            this.setState({ model: model });
-            console.log(this.state.history)
+            await this.gtp.command(`loadsgf ${file}`);
+            let fromsgf=GoPosition.fromSgf(sgf);
+            const model=fromsgf.model;
+            const history=fromsgf.history;
+            this.setState({ model: model,history: history });
             this.kataAnalyze();
 
         }
@@ -167,7 +168,7 @@ class GoAI extends React.Component<Props, State> {
                             <Button type="primary" shape="round" icon={<UploadOutlined />}>上传sgf棋谱</Button>
                         </Upload>
                         <a>&nbsp;&nbsp;</a>
-                        <Button type="primary" shape="round">下载当前棋谱</Button>
+                        <Button type="primary" shape="round" onClick={()=>{this.downloadsgf()}}>下载当前棋谱</Button>
                     </Row>
                     <Divider/>
                     <Row>
@@ -182,6 +183,47 @@ class GoAI extends React.Component<Props, State> {
         );
     }
 
+    pointToXy(point: any): [number, number] {
+        const y = Math.floor(point / this.size);
+        const x = point - y * this.size;
+        return [x + 1, y + 1];
+    }
+    xy2str(x: number, y: number): string {
+        const COORD = [ "a", "b", "c", "d", "e", "f", "g", "h", "i","j", "k", "l", "m", "n", "o", "p", "q", "r", "s"];
+        return COORD[x-1] + COORD[this.size-y];
+    }
+
+    generatesgf(history:(GoMove|undefined)[]){
+        let string="("
+        for(let i=0;i<history.length;i++){
+            let tmp="";
+            if(i%2==0){
+                tmp+="B[";
+            }
+            else{
+                tmp+="W["
+            }
+            if(typeof history[i] === undefined){
+                tmp+="@";
+            }
+            else{
+                let point=history[i]?.point;
+                tmp+=this.xy2str(this.pointToXy(point)[0],this.pointToXy(point)[1]);
+            }
+
+            tmp+="];";
+            string+=tmp;
+        }
+        string+=")"
+        return string;
+    }
+
+    downloadsgf(){
+        let FileSaver=require('file-saver');
+        let data=this.generatesgf(this.state.history);
+        let blob = new Blob([data], {type: "text/plain;charset=utf-8"});
+        FileSaver.saveAs (blob, "webkatago.sgf");
+    }
 
 
     kataAnalyze() {
@@ -213,6 +255,7 @@ class GoAI extends React.Component<Props, State> {
     }
 
     async play(x: number, y: number) {
+        console.log(this.state.history)
         try {
             const turn = this.state.model.turn;
             this.setState((state, props) => {
@@ -232,7 +275,6 @@ class GoAI extends React.Component<Props, State> {
         } catch (e) {
             console.log(e);
         }
-        console.log(this.state)
     }
 
     async undo() {

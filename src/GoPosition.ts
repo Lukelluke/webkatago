@@ -98,6 +98,7 @@ class GoPosition {
         const [root] = jssgf.fastParse(sgf);
         const p = new this(parseInt(root.SZ || "19"));
         let node = root;
+        let history=[];
         while (node._children.length > 0) {
             node = node._children[0];
             let move;
@@ -110,13 +111,15 @@ class GoPosition {
             }
             const xy = p.moveToXy(move);
             if (xy === PASS) {
-                p.play(PASS);
+                history.push(p.play(PASS));
             } else {
-                p.play(p.xyToPoint.apply(p, xy));
+                history.push(p.play(p.xyToPoint.apply(p, xy)));
             }
         }
-        return p
+        return {model:p,history:history}
     }
+
+
 
     constructor(boardSize: number, handicap: number = 0) {
         this.BOARD_SIZE = boardSize;
@@ -244,6 +247,7 @@ class GoPosition {
 
     play(point: number): GoMove | undefined {
         if (point === PASS) {
+
             this.putRecent8(point);
             this.switchTurn();
             return {
