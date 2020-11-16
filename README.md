@@ -9,11 +9,13 @@ Website1:
 Website2:
 [http://124.70.76.170:3000](http://124.70.76.170:3000)
 
-**Please adjust a proper browser zoom scale to get the best experience**
-<br/>
-**Only Support latest Edge and Chrome on PC**
-
 ![demo.png](demo/demo.PNG)
+
+## Notification
++ Please adjust a proper browser zoom scale to get the best experience**
+
++ Only Support latest Edge and Chrome on PC
++ It requires a while to load resources the first time,which will be restored in your work-server
 
 ## install dependency
 ```
