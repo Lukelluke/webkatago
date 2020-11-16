@@ -3,7 +3,6 @@
   "dependencies": {
     "@ant-design/icons": "^4.3.0",
     "antd": "^4.8.2",
-    "file-loader": "^6.2.0",
     "file-saver": "^2.0.2",
     "filesaver": "^0.0.13",
     "jssgf": "^0.3.8",

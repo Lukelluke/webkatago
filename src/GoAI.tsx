@@ -100,14 +100,15 @@ class GoAI extends React.Component<Props, State> {
         const size = `795px`;
         const candidatesize = `400px`;
         const afterload=async (result:any)=>{
+            console.log(result)
             const sgf = result.target.result;
             const file = "tmp.sgf";
             FS.writeFile(file, sgf);
             await this.gtp.command(`loadsgf ${file}`);
             let fromsgf=GoPosition.fromSgf(sgf);
+            console.log(fromsgf)
             const model=fromsgf.model;
             const history=fromsgf.history;
-            console.log(this.state.model)
             this.setState({ model: model,history: history });
             this.kataAnalyze();
 
@@ -115,7 +116,6 @@ class GoAI extends React.Component<Props, State> {
         const uploadconfig = {
             name: 'file',
             beforeUpload(file:any){
-                console.log(file)
                 if (file.name.indexOf(".sgf")===-1) {
                     message.error(`${file.name} is not a sgf file`);
                     return false;
@@ -123,11 +123,9 @@ class GoAI extends React.Component<Props, State> {
                 const reader=new FileReader();
                 reader.readAsText(file);
                 reader.onload=(result:any)=>{
-                    console.log(result);
-
                     afterload(result);
                 }
-                return false;
+                return true;
             },
             showUploadList:false
 
@@ -216,7 +214,7 @@ class GoAI extends React.Component<Props, State> {
     }
 
     generatesgf(history:(GoMove|undefined)[]){
-        let string="("
+        let string="(;INFO[webkatago];"
         for(let i=0;i<history.length;i++){
             let tmp="";
             if(i%2===0){
