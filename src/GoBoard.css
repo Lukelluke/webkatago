@@ -3,7 +3,7 @@
  */
 
  .go-board {
-    background-image: url(https://storage.googleapis.com/mimiaka-storage/mimiaka/public/images/goban.jpg);
+    background-image: url(resources/goban.jpg);
     background-size: contain;
 }
 

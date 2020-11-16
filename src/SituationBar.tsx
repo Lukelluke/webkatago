@@ -4,7 +4,7 @@
 
 import React from "react";
 import {Progress} from "antd";
-import { Row, Col, Divider } from 'antd';
+
 
 interface Props {
     width: string;

@@ -10,6 +10,7 @@ import Gtp, { KataInfo } from "./Gtp";
 import { Row, Col, Divider,Button } from 'antd';
 import { Upload, message } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
+import BestCandidate from "./BestCandidate";
 
 
 function appendScript(URL: string, onload: (() => void) | null = null) {
@@ -97,6 +98,7 @@ class GoAI extends React.Component<Props, State> {
 
     render() {
         const size = `795px`;
+        const candidatesize = `400px`;
         const afterload=async (result:any)=>{
             const sgf = result.target.result;
             const file = "tmp.sgf";
@@ -105,6 +107,7 @@ class GoAI extends React.Component<Props, State> {
             let fromsgf=GoPosition.fromSgf(sgf);
             const model=fromsgf.model;
             const history=fromsgf.history;
+            console.log(this.state.model)
             this.setState({ model: model,history: history });
             this.kataAnalyze();
 
@@ -113,7 +116,7 @@ class GoAI extends React.Component<Props, State> {
             name: 'file',
             beforeUpload(file:any){
                 console.log(file)
-                if (file.name.indexOf(".sgf")==-1) {
+                if (file.name.indexOf(".sgf")===-1) {
                     message.error(`${file.name} is not a sgf file`);
                     return false;
                 }
@@ -124,7 +127,7 @@ class GoAI extends React.Component<Props, State> {
 
                     afterload(result);
                 }
-                return true;
+                return false;
             },
             showUploadList:false
 
@@ -171,10 +174,29 @@ class GoAI extends React.Component<Props, State> {
                         <Button type="primary" shape="round" onClick={()=>{this.downloadsgf()}}>下载当前棋谱</Button>
                     </Row>
                     <Divider/>
-                    <Row>
-                        <a>胜率变化图</a>
+                    <Row style={{paddingTop:40}}>
+                        <Col style={{paddingLeft:40}}>
+                        <BestCandidate width={candidatesize}
+                                       height={candidatesize}
+                                       w={this.size}
+                                       h={this.size}
+                                       candidates={this.state.candidates}
+                                       model={this.state.model}
+                                       order={0}
+                                       />
+                        </Col>
+                        <Col style={{paddingLeft:40}}>
+                        <BestCandidate width={candidatesize}
+                                       height={candidatesize}
+                                       w={this.size}
+                                       h={this.size}
+                                       candidates={this.state.candidates}
+                                       model={this.state.model}
+                                       order={1}
+                        />
+                        </Col>
                     </Row>
-                    <Divider/>
+
 
                 </Col>
 
@@ -197,7 +219,7 @@ class GoAI extends React.Component<Props, State> {
         let string="("
         for(let i=0;i<history.length;i++){
             let tmp="";
-            if(i%2==0){
+            if(i%2===0){
                 tmp+="B[";
             }
             else{
@@ -255,7 +277,7 @@ class GoAI extends React.Component<Props, State> {
     }
 
     async play(x: number, y: number) {
-        console.log(this.state.history)
+        console.log(this.state)
         try {
             const turn = this.state.model.turn;
             this.setState((state, props) => {
